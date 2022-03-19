@@ -37,4 +37,4 @@ upload-release: # задача с именем upload-release
       curl -sSL -H "JOB-TOKEN: ${CI_JOB_TOKEN}" 
       -T sausage-store-0.0.1.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
     - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"*Дворов Иван* собрал приложение. :mushroom-dance:"}' https://hooks.slack.com/services/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
+      curl -X POST -H "Content-type: application/json" --data '{"text":"*Дворов Иван* собрал приложение. :mushroom_dance:"}' https://hooks.slack.com/services/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
