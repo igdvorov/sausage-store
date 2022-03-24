@@ -41,7 +41,7 @@ sonarqube-backend-sast: #SonarQube backend SAST test
     - >
       mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
       -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_KEY} \
-      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.host.url=${SONARQUBE_URL} \
       -Dsonar.login=${SONAR_LOGIN}
 
 upload-release: # задача с именем upload-release
