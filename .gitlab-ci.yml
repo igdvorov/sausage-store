@@ -40,7 +40,7 @@ sonarqube-backend-sast: #SonarQube backend SAST test
     - cd backend
     - >
       mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
-      -Dsonar.projectKey=${04_IVANDVOROV_BACKEND} \
+      -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_KEY} \
       -Dsonar.host.url=${SONARQUBE_URL}
       -Dsonar.login=${SONAR_LOGIN}
 
