@@ -33,6 +33,17 @@ spotbugs-sast: # Запрещаем повторную компиляцию и �
     COMPILE: "false"
     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/.m2/repository
 
+sonarqube-backend-sast: #SonarQube backend SAST test
+  stage: test
+  image: maven:3.8-openjdk-16
+  script:
+    - cd backend
+    - >
+      mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
+      -Dsonar.projectKey=${04_IVANDVOROV_BACKEND}
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONAR_LOGIN}
+
 upload-release: # задача с именем upload-release
   stage: release # этап release
   # only: # запуск этого шага только при изменениях в директориях backend и frontend
