@@ -2,7 +2,7 @@ stages:
   - build
   - release
   - test
-  # - notification
+  - notification
 include:
   - template: Security/SAST.gitlab-ci.yml 
 
@@ -41,8 +41,20 @@ sonarqube-backend-sast: #SonarQube backend SAST test
     - >
       mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
       -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_KEY}
-      -Dsonar.host.url="https://sonarqube.praktikum-services.ru"
+      -Dsonar.host.url=${SONARQUBE_URL}
       -Dsonar.login=${SONAR_LOGIN}
+
+sonarqube-frontend-sast: #SonarQube frontend SAST test
+  stage: test
+  image: sonarsource/sonar-scanner-cli
+  script:
+    - cd frontend
+    - >
+      sonar-scanner -Dsonar.qualitygate.wait=true
+      -Dsonar.projectKey=${SONAR_PROJECT_FRONTEND_KEY}
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONAR_LOGIN}
+
 
 upload-release: # задача с именем upload-release
   stage: release # этап release
@@ -59,8 +71,8 @@ upload-release: # задача с именем upload-release
       curl -sSL -H "JOB-TOKEN: ${CI_JOB_TOKEN}" 
       -T sausage-store-0.0.1.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
 
-# send-notification:
-  # stage: notification
-  # script:
-  #   - > # Send Slack POST
-  #     curl -X POST -H "Content-type: application/json" --data '{"text":"*Дворов Иван* собрал приложение. :parrot-party:"}' https://hooks.slack.com/services/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
+send-notification:
+  stage: notification
+  script:
+    - > # Send Slack POST
+      curl -X POST -H "Content-type: application/json" --data '{"text":"*Дворов Иван* собрал приложение в *GitLab Ci* + *SAST*. :bongo_blob:"}' https://hooks.slack.com/services/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
