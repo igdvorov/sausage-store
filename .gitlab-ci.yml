@@ -3,6 +3,8 @@ stages:
   - release
   - test
   - notification
+variables: #add VERSION var
+  VERSION: 1.0.${CI_PIPELINE_ID}
 include:
   - template: Security/SAST.gitlab-ci.yml 
 
@@ -16,14 +18,14 @@ build-code-job:  # задача с именем build-code-job
     - npm install # загрузка всех сторонних зависимостей
     - npm run build # запуск сборки кода
     - cd .. 
-    - mkdir sausage-store-0.0.1  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
-    - mv backend/target/sausage-store-0.0.1-SNAPSHOT.jar sausage-store-0.0.1/sausage-store-0.0.1.jar # копирование собранного бэкенда
-    - mv frontend/dist/frontend sausage-store-0.0.1/public_html # копирование собранного фронтэнда
+    - mkdir sausage-store-${VERSION}  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
+    - mv backend/target/sausage-store-${VERSION}.jar sausage-store-${VERSION}/sausage-store-${VERSION}.jar # копирование собранного бэкенда
+    - mv frontend/dist/frontend sausage-store-${VERSION}/public_html # копирование собранного фронтэнда
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/.m2/ # сохранение зависимостей для SAST 
-      - sausage-store-0.0.1/public_html  # сохранение собранного фронтэнда как артефакт
-      - sausage-store-0.0.1/sausage-store-0.0.1.jar # сохранение собранного бэкенда как артефакт
+      - sausage-store-${VERSION}/public_html  # сохранение собранного фронтэнда как артефакт
+      - sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
     reports:
       dotenv: CI_JOB_ID.txt # сохранение файла с переменными как артефакт
       
@@ -65,15 +67,28 @@ upload-release: # задача с именем upload-release
   #   - frontend//*
   script: 
     - echo "Get artifact from job ${ARTIFACT_JOB_ID}" 
-    - > # скачивание артефакта в файл sausage-store-0.0.1.zip
-      curl --location --output sausage-store-0.0.1.zip -H "PRIVATE-TOKEN: ${MY_TOKEN}" 
+    - > # скачивание артефакта в файл sausage-store.zip
+      curl --location --output sausage-store-${VERSION}.zip -H "PRIVATE-TOKEN: ${MY_TOKEN}" 
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${ARTIFACT_JOB_ID}/artifacts"
     - > # сохранение артефакта в package registry
       curl -sSL -H "JOB-TOKEN: ${CI_JOB_TOKEN}" 
-      -T sausage-store-0.0.1.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
+      -T sausage-store-${VERSION}.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
+
+nexus-upload-backend: # Nexus backend
+  stage: release
+  script:
+    - cd backend
+    - mvn -s settings.xml deploy -DskipTests
+
+nexus-upload-frontend: # Nexus frontend
+  stage: release
+  script:
+    - tar czvf sausage-store-${VERSION}.tar.gz sausage-store-${VERSION}
+    - >
+      curl -v -u "${NEXUS_REPO_USER}:${NEXUS_REPO_PASS}" --upload-file sausage-store-${VERSION}.tar.gz ${NEXUS_REPO_URL}sausage-store-dvorov-ivan-frontend/sausage-store/${VERSION}/sausage-store-${VERSION}.tar.gz
 
 send-notification:
   stage: notification
   script:
     - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"*Дворов Иван* собрал приложение в *GitLab Ci* + *SAST*. :bongo_blob:"}' https://hooks.slack.com/services/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
+      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать фронт можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-frontend/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.tar.gz|ссылке>. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|ссылке>. :parrot-party:"}' https://hooks.slack.com/services/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
