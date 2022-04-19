@@ -42,6 +42,7 @@ release:
     - changes:
         - frontend/*
 deploy:
+  when: manual
   stage: deploy
   script:
     - scp ./frontend/sausage-store-frontend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-frontend.service
