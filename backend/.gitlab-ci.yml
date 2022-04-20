@@ -19,8 +19,8 @@ stages:
   - build
   - release
   - test
-  - deploy
   - notification
+  - deploy
 
 build:
   stage: build
