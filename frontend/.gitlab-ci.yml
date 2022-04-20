@@ -44,12 +44,16 @@ release:
     - changes:
         - frontend/*
 
-nexus-upload-frontend: # Nexus frontend
-  stage: release
+sonarqube-frontend-sast: #SonarQube frontend SAST test
+  stage: test
+  image: sonarsource/sonar-scanner-cli
   script:
-    - tar czvf sausage-store-${VERSION}.tar.gz sausage-store-${VERSION}
+    - cd frontend
     - >
-      curl -v -u "${NEXUS_REPO_USER}:${NEXUS_REPO_PASS}" --upload-file sausage-store-${VERSION}.tar.gz ${NEXUS_REPO_URL}sausage-store-dvorov-ivan-frontend/sausage-store/${VERSION}/sausage-store-${VERSION}.tar.gz
+      sonar-scanner -Dsonar.qualitygate.wait=true
+      -Dsonar.projectKey=${SONAR_PROJECT_FRONTEND_KEY}
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONAR_LOGIN}NEXUS_REPO_USER}:${NEXUS_REPO_PASS}" --upload-file sausage-store-${VERSION}.tar.gz ${NEXUS_REPO_URL}sausage-store-dvorov-ivan-frontend/sausage-store/${VERSION}/sausage-store-${VERSION}.tar.gz
 
 deploy:
   when: manual
