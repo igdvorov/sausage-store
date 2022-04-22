@@ -26,15 +26,13 @@ build-code-job:  # задача с именем build-code-job
       - ${CI_PROJECT_DIR}/.m2/ # сохранение зависимостей для SAST 
       - sausage-store-${VERSION}/public_html  # сохранение собранного фронтэнда как артефакт
       - sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
+      - backend/target/
     reports:
       dotenv: CI_JOB_ID.txt # сохранение файла с переменными как артефакт
       
-spotbugs-sast:
-  dependencies:
-    - build-backend-spotbugs
+spotbugs-sast: # Запрещаем повторную компиляцию и указываем, где брать зависимости
   variables:
     COMPILE: "false"
-    JAVA_OPTS: -XX:MaxRAMPercentage=90
     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/.m2/repository
 
 sonarqube-backend-sast: #SonarQube backend SAST test
