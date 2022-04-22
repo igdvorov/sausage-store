@@ -26,6 +26,7 @@ build-code-job:  # задача с именем build-code-job
       - ${CI_PROJECT_DIR}/.m2/ # сохранение зависимостей для SAST 
       - sausage-store-${VERSION}/public_html  # сохранение собранного фронтэнда как артефакт
       - sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
+      - backend/target/
     reports:
       dotenv: CI_JOB_ID.txt # сохранение файла с переменными как артефакт
       
