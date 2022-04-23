@@ -121,7 +121,7 @@
         <repository>
             <id>sausage-store-backend</id>
             <name>sausage-store-backend</name>
-            <url>${NEXUS_REPO_URL}sausage-store-dvorov-ivan-backend/</url>
+            <url>${NEXUS_REPO_URL}/sausage-store-dvorov-ivan-backend/</url>
         </repository>
     </distributionManagement><!-- Nexus settings block -->
     
