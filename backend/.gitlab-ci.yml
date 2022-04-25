@@ -2,7 +2,7 @@ stages:
   - build
   - release
   - test
-  - notification
+  # - notificationq
   - deploy
 
 variables:
@@ -92,8 +92,8 @@ deploy:
     - scp ./backend/sausage-store-backend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-backend.service
     - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./backend/backend-deploy.sh
 
-send-notification:
-  stage: notification
-  script:
-    - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
+# send-notification:
+#   stage: notification
+#   script:
+#     - > # Send Slack POST
+#       curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
