@@ -13,6 +13,7 @@ include:
 build:
   stage: build
   script:
+    - echo ${CI_PROJECT_DIR}
     - echo "ARTIFACT_JOB_ID=${CI_JOB_ID}" > CI_JOB_ID.txt  # сохранение номера задачи в файл, чтобы в дальнейшем использовать для копирования артефакта  
     - cd frontend
     - npm install
@@ -69,7 +70,8 @@ deploy:
   script:
     - scp ./frontend/sausage-store-frontend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-frontend.service
     - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./frontend/frontend-deploy.sh
-
+  environment:
+    name: production
 # send-notification:
 #   stage: notification
 #   script:
