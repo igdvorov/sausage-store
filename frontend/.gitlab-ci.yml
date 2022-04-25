@@ -5,7 +5,7 @@ stages:
   - build
   - release
   - test
-  - notification
+  # - notification
   - deploy
 
 include:
@@ -70,8 +70,8 @@ deploy:
     - scp ./frontend/sausage-store-frontend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-frontend.service
     - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./frontend/frontend-deploy.sh
 
-send-notification:
-  stage: notification
-  script:
-    - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать фронт можно по ссылке - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-frontend/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.tar.gz|sausage-store-'"$VERSION"'.tar.gz>. :conga_parrot:"}' https://hooks.slack.com/services/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
+# send-notification:
+#   stage: notification
+#   script:
+#     - > # Send Slack POST
+#       curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать фронт можно по ссылке - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-frontend/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.tar.gz|sausage-store-'"$VERSION"'.tar.gz>. :conga_parrot:"}' https://hooks.slack.com/services/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
