@@ -1,5 +1,19 @@
 # Sausage Store
 
+### single
+hostname - rc1a-5dd7qg0z5hoe1x3o.mdb.yandexcloud.net
+port     - 6432
+username - sausage-store-db-user
+password - 4wzTVbsbklPl42Sj5xKZrG
+db_name  - sausage-store-db
+### cluster
+hostname - rc1a-6s9np12pfl1emms4.mdb.yandexcloud.net
+hostname - rc1b-02ykbvl7dw1hk2pu.mdb.yandexcloud.net
+port     - 6432
+username - sausage-store-db-user
+password - 4wzTVbsbklPl42Sj5xKZrG
+db_name  - sausage-store-db
+
 ![image](https://user-images.githubusercontent.com/9394918/121517767-69db8a80-c9f8-11eb-835a-e98ca07fd995.png)
 
 
