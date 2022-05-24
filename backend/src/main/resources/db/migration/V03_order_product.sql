@@ -1,0 +1,2 @@
+create table order_product(quantity integer not null, order_id bigint not null, product_id bigint not null);
+insert into order_product (quantity, order_id, product_id) select floor(1+random()*50)::int, i, 1 + floor(random()*6)::int % 6 from generate_series(1, 100) s(i);

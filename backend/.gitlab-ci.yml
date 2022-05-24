@@ -63,6 +63,7 @@ spotbugs-sast:
     COMPILE: "false"
     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/backend/.m2/repository
     SAST_JAVA_VERSION: "11"
+    SECURE_LOG_LEVEL: "debug"
     
 sonarqube-backend-sast: #SonarQube backend SAST test
   stage: test
