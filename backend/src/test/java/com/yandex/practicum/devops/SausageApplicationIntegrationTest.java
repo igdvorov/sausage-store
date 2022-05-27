@@ -63,17 +63,17 @@ public class SausageApplicationIntegrationTest {
         assertThat(products, hasItem(hasProperty("name", is("Мюнхенская"))));
         assertThat(products, hasItem(hasProperty("name", is("Еврейская"))));
     }
-    
-    // @Test
-    // public void givenGetOrdersApiCall_whenProductListRetrieved_thenSizeMatchAndListContainsProductNames() {
-    //     ResponseEntity<Iterable<Order>> responseEntity = restTemplate.exchange("http://localhost:" + port + "/api/orders", HttpMethod.GET, null, new ParameterizedTypeReference<Iterable<Order>>() {
-    //     });
 
-    //     Iterable<Order> orders = responseEntity.getBody();
-    //     Assertions
-    //       .assertThat(orders)
-    //       .hasSize(0);
-    // }
+    @Test
+    public void givenGetOrdersApiCall_whenProductListRetrieved_thenSizeMatchAndListContainsProductNames() {
+        ResponseEntity<Iterable<Order>> responseEntity = restTemplate.exchange("http://localhost:" + port + "/api/orders", HttpMethod.GET, null, new ParameterizedTypeReference<Iterable<Order>>() {
+        });
+
+        Iterable<Order> orders = responseEntity.getBody();
+        Assertions
+          .assertThat(orders)
+          .hasSize(0);
+    }
 
     @Test
     public void givenPostOrder_whenBodyRequestMatcherJson_thenResponseContainsEqualObjectProperties() {
