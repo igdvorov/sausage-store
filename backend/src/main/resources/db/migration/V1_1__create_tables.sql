@@ -17,5 +17,3 @@ create table public.order_product
     order_id bigint not null,
     product_id bigint not null
 );
-ALTER TABLE public.product ALTER COLUMN name TYPE varchar(20);
-ALTER TABLE public.product ALTER COLUMN picture_url TYPE varchar(100);
