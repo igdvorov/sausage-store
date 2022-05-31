@@ -5,6 +5,11 @@ Description=Sausage-store-backend
 User=jarservice
 Environment=REPORT_PATH=/var/www-data/htdocs/reports
 Environment=LOG_PATH=/logs
+Environment=PSQL_USER=sausage-store-db-user
+Environment=PSQL_PASSWORD=4wzTVbsbklPl42Sj5xKZrG
+Environment=PSQL_HOST=c-c9qm1kisvs2b9gcre5a9.rw.mdb.yandexcloud.net
+Environment=PSQL_PORT=6432
+Environment=PSQL_DBNAME=sausage-store-db
 StandardOutput=file:/logs/out.log
 Restart=on-failure
 ExecStart=/usr/bin/java \
@@ -13,9 +18,9 @@ ExecStart=/usr/bin/java \
 -Dmyserver.bindPort='8080' \
 -Dmyserver.hostName='Sausage-store' \
 -jar '/var/jarservice/sausage-store.jar' \
---spring.datasource.url=jdbc:postgresql://c-c9qm1kisvs2b9gcre5a9.rw.mdb.yandexcloud.net:6432/sausage-store-db?&targetServerType=master&ssl=true&sslmode=verify-full \
---spring.datasource.username=sausage-store-db-user \
---spring.datasource.password=4wzTVbsbklPl42Sj5xKZrG \
+--spring.datasource.url=jdbc:postgresql://${PSQL_HOST}:${PSQL_PORT}/${PSQL_DBNAME}?&targetServerType=master&ssl=true&sslmode=verify-full \
+--spring.datasource.username=${PSQL_USER} \
+--spring.datasource.password=${PSQL_PASSWORD} \
 SuccessExitStatus=143
 
 [Install]
