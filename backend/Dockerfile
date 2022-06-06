@@ -1,5 +1,5 @@
 # build
-FROM maven:3.8.2-openjdk-16-slim as builder
+FROM maven:3.8.2-openjdk-16-slim:backend-artifacts as builder
 # задаём переменную VERSION, которая будет использоваться для сборки проекта
 ARG VERSION=${VERSION}
 WORKDIR /usr/src/app
@@ -10,7 +10,7 @@ RUN curl https://storage.yandexcloud.net/cloud-certs/CA.pem -o YandexInternalRoo
 	&& mvn package -Dversion.application=${VERSION}
 
 # release
-FROM openjdk:16-jdk-alpine
+FROM openjdk:16-jdk-alpine:backend-artifacts
 ARG VERSION=${VERSION}
 WORKDIR /app
 COPY --from=builder /usr/src/app/YandexInternalRootCA.crt .
