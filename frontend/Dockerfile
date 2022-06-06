@@ -6,4 +6,4 @@ COPY --chown=front-user:front-user . .
 RUN npm install && npm install -g http-server && npm run build
 EXPOSE 3543/tcp
 USER front-user
-ENTRYPOINT ["http-server", "dist/frontend/", "-p", "3543", "--proxy", "http://172.18.0.3:8080"] 
+ENTRYPOINT ["http-server", "dist/frontend/", "-p", "3543", "--proxy", "http://172.18.0.1:8080"] 
