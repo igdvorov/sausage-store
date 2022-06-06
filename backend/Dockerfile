@@ -27,4 +27,4 @@ COPY --chown=jaruser:jaruser \
 EXPOSE 8080
 # приложение будет запускаться под пользователем jaruser
 USER jaruser
-ENTRYPOINT ["dumb-init", "java", "-Dmyserver.bindAddr=172.18.0.1", "-Dmyserver.bindPort=8080", "-jar", "./sausage-store.jar"]
+ENTRYPOINT ["dumb-init", "java", "-Dmyserver.bindAddr=172.18.0.3", "-Dmyserver.bindPort=8080", "-jar", "./sausage-store.jar"]
