@@ -152,7 +152,7 @@ sonarqube-backend-sast: #SonarQube backend SAST test
       -Dsonar.login=${SONAR_LOGIN}
       -Dsonar.projectName=04_IVANDVOROV_BACKEND
   dependencies:
-    - build-backend
+    - backend-artifacts
 
 # deploy:
 #   when: manual
