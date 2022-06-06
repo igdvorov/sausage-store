@@ -61,13 +61,7 @@ deploy-frontend:
     - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh ${DEV_USER}@${DEV_HOST}
-      "export "VERSION=${VERSION}";
-      export "SPRING_DATASOURCE_URL=${PSQL_DATASOURCE}";
-      export "SPRING_DATASOURCE_USERNAME=${PSQL_USER}";
-      export "SPRING_DATASOURCE_PASSWORD=${PSQL_PASSWORD}";
-      export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
-      /bin/bash -s " < ./frontend/frontend-deploy.sh 
+    - ssh ${DEV_USER}@${DEV_HOST} "export "VERSION=${VERSION}"; /bin/bash -s " < ./frontend/frontend-deploy.sh 
 
 # build:
 #   stage: build
