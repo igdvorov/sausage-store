@@ -70,6 +70,8 @@ deploy-backend:
       export "SPRING_DATASOURCE_USERNAME=${PSQL_USER}";
       export "SPRING_DATASOURCE_PASSWORD=${PSQL_PASSWORD}";
       export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
+      pwd
+      ls -la
       setsid /bin/bash -s " < backend_deploy.sh 
       # ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./backend/backend-deploy.sh
 
