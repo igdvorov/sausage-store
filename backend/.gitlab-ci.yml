@@ -1,11 +1,11 @@
 include:
   # - template: Security/SAST.gitlab-ci.yml 
-  # - project: 'templates/ci'
-    # file: 'DockerInDockerTemplate.yml'
+  - project: 'templates/ci'
+    file: 'DockerInDockerTemplate.yml'
   
 stages:
   - build
-  - release
+  # - release
   # - test
   # - notificationq
   # - deploy
@@ -15,22 +15,38 @@ variables:
   MAVEN_REPO_PATH: ./.m2/repository
   JAVA_OPTS: -XX:MaxRAMPercentage=90
 
-# build-backend:
-#   stage: build
-#   image: docker:20.10.12-dind-rootless
-#   before_script:
-#     - echo $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD CI_REGISTRY
-#     - until docker info; do sleep 1; done
-#     # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#   script:
-#     - cd backend
-#     - >
-#       docker build
-#       --build-arg VERSION=$VERSION
-#       --tag $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
-#       .
-#     - docker push $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
+backend-artefact:
+  stage: build
+  script:
+    - echo ${CI_PROJECT_DIR}
+    - echo "ARTIFACT_JOB_ID=${CI_JOB_ID}" > CI_JOB_ID.txt  # сохранение номера задачи в файл, чтобы в дальнейшем использовать для копирования артефакта  
+    - cd backend
+    - mvn package -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH}
+    - mkdir sausage-store-${VERSION}  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
+    - cp target/sausage-store-${VERSION}.jar sausage-store-${VERSION}/sausage-store-${VERSION}.jar # копирование собранного бэкенда
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/backend/.m2 # сохранение зависимостей для SAST 
+      - ${CI_PROJECT_DIR}/backend/sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
+
+build-backend:
+  stage: build
+  image: docker:20.10.12-dind-rootless
+  before_script:
+    - echo $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD CI_REGISTRY
+    - until docker info; do sleep 1; done
+    # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd backend
+    - >
+      docker build
+      --build-arg VERSION=$VERSION
+      --tag $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
+      .
+    - docker push $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
+  dependencies:
+    - backend-artefact
 
 # upload-backend-latest:
 #   variables:
@@ -73,20 +89,7 @@ variables:
 #       /bin/bash -s " < ./backend/backend-deploy.sh
 
 
-build backend:
-  stage: build
-  script:
-    - echo ${CI_PROJECT_DIR}
-    - echo "ARTIFACT_JOB_ID=${CI_JOB_ID}" > CI_JOB_ID.txt  # сохранение номера задачи в файл, чтобы в дальнейшем использовать для копирования артефакта  
-    - cd backend
-    - mvn package -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH}
-    - mkdir sausage-store-${VERSION}  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
-    - cp target/sausage-store-${VERSION}.jar sausage-store-${VERSION}/sausage-store-${VERSION}.jar # копирование собранного бэкенда
 
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/backend/.m2 # сохранение зависимостей для SAST 
-      - ${CI_PROJECT_DIR}/backend/sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
 #     reports:
 #       dotenv: CI_JOB_ID.txt # сохранение файла с переменными как артефакт
 #   rules:
@@ -94,15 +97,13 @@ build backend:
 #         - backend/*
 
 
-release:
-  stage: release
-  script:
-    - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
-  dependencies:
-    - build backend
-  rules:
-    - changes:
-        - backend/*
+# release:
+#   stage: release
+#   script:
+#     - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
+#   rules:
+#     - changes:
+#         - backend/*
 
 # upload-release: # задача с именем upload-release
 #   stage: release # этап release
