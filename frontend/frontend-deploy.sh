@@ -1,6 +1,6 @@
 #!/bin/bash
 docker network create -d bridge sausage_network || true
-gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-frontend:latest
+docker pull gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-frontend:latest
 docker stop frontend || true
 docker rm frontend || true
 set -e
