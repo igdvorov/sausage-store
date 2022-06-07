@@ -89,16 +89,13 @@ deploy-backend:
       export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
       /bin/bash -s " < ./backend/backend-deploy.sh
 
-
-release:
-  stage: release
-  script:
-    - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
-  rules:
-    - changes:
-        - backend/*
-  dependencies:
-    - make-artifacts
+# release:
+#   stage: release
+#   script:
+#     - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
+#   rules:
+#     - changes:
+#         - backend/*
 
 upload-release: # задача с именем upload-release
   stage: release # этап release
@@ -114,6 +111,8 @@ upload-release: # задача с именем upload-release
     - > # сохранение артефакта в package registry
       curl -sSL -H "JOB-TOKEN: ${CI_JOB_TOKEN}" 
       -T sausage-store-${VERSION}.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
+  dependencies:
+    - make-artifacts
 
 spotbugs-sast:
   variables:
