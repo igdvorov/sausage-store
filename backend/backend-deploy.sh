@@ -1,15 +1,20 @@
-#! /bin/bash
-#Если свалится одна из команд, рухнет и весь скрипт
-set -xe
-#Перезаливаем дескриптор сервиса backend на ВМ для деплоя
-sudo cp -rf sausage-store-backend.service /etc/systemd/system/sausage-store-backend.service
-sudo rm -f /var/jarservice/sausage-store.jar||true
-#Переносим артефакт в нужную папку
-curl -u $NEXUS_REPO_USER:$NEXUS_REPO_PASS -o sausage-store.jar $NEXUS_REPO_URL/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/$VERSION/sausage-store-$VERSION.jar
-sudo cp ./sausage-store.jar /var/jarservice/sausage-store.jar||true #"jar||true" говорит, если команда обвалится — продолжай
-#Меняем владельца директории с root на jarservice:jarusers
-sudo chown -R jarservice:jarusers /var/jarservice/
-#Обновляем конфиг systemd с помощью рестарта
-sudo systemctl daemon-reload
-#Перезапускаем сервис backend сосисочной
-sudo systemctl restart sausage-store-backend.service
+#!/bin/bash
+set +e
+cat > .env <<EOF
+SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+SPRING_DATA_MONGODB_URI=${SPRING_DATA_MONGODB_URI}
+EOF
+docker image prune --filter label=stage=builder -f
+docker network create -d bridge sausage_network || true
+docker pull gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend:latest
+docker stop backend || true
+docker rm backend || true
+set -e
+docker run -d --name backend \
+    --network=sausage_network \
+    --restart always \
+    --pull always \
+    --env-file .env \
+	gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend:latest
