@@ -2,6 +2,9 @@
 target
 #Ignore all files in target directory
 target/*
+*DockerInDockerTemplate.yml
 *sausage-store-backend.service
 *backend-deploy.sh
 *Dockerfile
+*.gitlab-ci.yml
+*settings.xml
