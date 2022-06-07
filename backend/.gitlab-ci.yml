@@ -115,7 +115,7 @@ deploy-backend:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: manual
-    - if: '$CI_COMMIT_BRANCH == "docker-dev"'
+    - if: '$CI_COMMIT_BRANCH == "docker"'
       when: manual
   before_script:
     - apk add openssh-client bash
