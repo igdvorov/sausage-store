@@ -8,7 +8,7 @@ stages:
   - build
   - release
   - test
-  # - notification
+  - notification
   - deploy
 
 variables:
@@ -63,32 +63,6 @@ upload-backend-latest:
     - docker tag $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/sausage-backend:latest
     - docker push $CI_REGISTRY_IMAGE/sausage-backend:latest
 
-deploy-backend:
-  stage: deploy
-  image: alpine:3.15.0
-  #если хотим сделать деплой по кнопке
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual
-    - if: '$CI_COMMIT_BRANCH == "docker-dev"'
-      when: manual
-  before_script:
-    - apk add openssh-client bash
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-  script:
-    - ssh ${DEV_USER}@${DEV_HOST}
-      "export "VERSION=${VERSION}";
-      export "SPRING_DATASOURCE_URL=${PSQL_DATASOURCE}";
-      export "SPRING_DATASOURCE_USERNAME=${PSQL_USER}";
-      export "SPRING_DATASOURCE_PASSWORD=${PSQL_PASSWORD}";
-      export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
-      /bin/bash -s " < ./backend/backend-deploy.sh
-
 # release:
 #   stage: release
 #   script:
@@ -134,6 +108,32 @@ sonarqube-backend-sast: #SonarQube backend SAST test
   dependencies:
     - make-artifacts
 
+deploy-backend:
+  stage: deploy
+  image: alpine:3.15.0
+  #если хотим сделать деплой по кнопке
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    - if: '$CI_COMMIT_BRANCH == "docker-dev"'
+      when: manual
+  before_script:
+    - apk add openssh-client bash
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh ${DEV_USER}@${DEV_HOST}
+      "export "VERSION=${VERSION}";
+      export "SPRING_DATASOURCE_URL=${PSQL_DATASOURCE}";
+      export "SPRING_DATASOURCE_USERNAME=${PSQL_USER}";
+      export "SPRING_DATASOURCE_PASSWORD=${PSQL_PASSWORD}";
+      export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
+      /bin/bash -s " < ./backend/backend-deploy.sh
+
 # deploy:
 #   when: manual
 #   stage: deploy
@@ -154,8 +154,8 @@ sonarqube-backend-sast: #SonarQube backend SAST test
   environment:
     name: production
 
-# send-notification:
-#   stage: notification
-#   script:
-#     - > # Send Slack POST
-#       curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
+send-notification:
+  stage: notification
+  script:
+    - > # Send Slack POST
+      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
