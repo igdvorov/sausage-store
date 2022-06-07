@@ -1,14 +1,8 @@
-include:
-  - template: Security/SAST.gitlab-ci.yml 
-  - project: 'templates/ci'
-    file: 'DockerInDockerTemplate.yml'
-
 stages:
-  - backend-artifact
   - build
   - release
   - test
-  - notification
+  # - notificationq
   - deploy
 
 variables:
@@ -16,8 +10,11 @@ variables:
   MAVEN_REPO_PATH: ./.m2/repository
   JAVA_OPTS: -XX:MaxRAMPercentage=90
 
-make-artifacts:
-  stage: backend-artifact
+include:
+  - template: Security/SAST.gitlab-ci.yml 
+
+build:
+  stage: build
   script:
     - echo ${CI_PROJECT_DIR}
     - echo "ARTIFACT_JOB_ID=${CI_JOB_ID}" > CI_JOB_ID.txt  # сохранение номера задачи в файл, чтобы в дальнейшем использовать для копирования артефакта  
@@ -25,51 +22,26 @@ make-artifacts:
     - mvn package -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH}
     - mkdir sausage-store-${VERSION}  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
     - cp target/sausage-store-${VERSION}.jar sausage-store-${VERSION}/sausage-store-${VERSION}.jar # копирование собранного бэкенда
+
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/backend/.m2 # сохранение зависимостей для SAST 
       - ${CI_PROJECT_DIR}/backend/sausage-store-${VERSION}/sausage-store-${VERSION}.jar # сохранение собранного бэкенда как артефакт
+    reports:
+      dotenv: CI_JOB_ID.txt # сохранение файла с переменными как артефакт
+  rules:
+    - changes:
+        - backend/*
 
-build-backend:
-  stage: build
-  image: docker:20.10.12-dind-rootless
-  before_script:
-    - echo $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD CI_REGISTRY
-    - until docker info; do sleep 1; done
-    # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+release:
+  stage: release
   script:
     - cd backend
-    - >
-      docker build
-      --build-arg VERSION=$VERSION
-      --tag $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
-      .
-    - docker push $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
-  dependencies:
-    - make-artifacts
-
-upload-backend-latest:
-  variables:
-    GIT_STRATEGY: none
-  image: docker:20.10.12-dind-rootless
-  stage: release
-  before_script:
-    - until docker info; do sleep 1; done
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker pull $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA
-    # если образ прошел проверки в CI (сканирование, тесты и т.д), то тегаем latest
-    - docker tag $CI_REGISTRY_IMAGE/sausage-backend:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/sausage-backend:latest
-    - docker push $CI_REGISTRY_IMAGE/sausage-backend:latest
-
-# release:
-#   stage: release
-#   script:
-#     - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
-#   rules:
-#     - changes:
-#         - backend/*
+    - mvn deploy -DskipTests -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -s settings.xml
+  rules:
+    - changes:
+        - backend/*
 
 upload-release: # задача с именем upload-release
   stage: release # этап release
@@ -85,8 +57,6 @@ upload-release: # задача с именем upload-release
     - > # сохранение артефакта в package registry
       curl -sSL -H "JOB-TOKEN: ${CI_JOB_TOKEN}" 
       -T sausage-store-${VERSION}.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sausage-store/${CI_COMMIT_SHA}/"
-  dependencies:
-    - make-artifacts
 
 spotbugs-sast:
   variables:
@@ -105,57 +75,29 @@ sonarqube-backend-sast: #SonarQube backend SAST test
       -Dsonar.host.url=${SONARQUBE_URL}
       -Dsonar.login=${SONAR_LOGIN}
       -Dsonar.projectName=04_IVANDVOROV_BACKEND
-  dependencies:
-    - make-artifacts
 
-deploy-backend:
+deploy:
+  when: manual
   stage: deploy
-  image: alpine:3.15.0
-  #если хотим сделать деплой по кнопке
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual
-    - if: '$CI_COMMIT_BRANCH == "docker"'
-      when: manual
   before_script:
-    - apk add openssh-client bash
+    #устанавливаем ssh-agent для удобства аутентификации по ssh
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
+    #сохраняем сгенеренный ранее приватный ключ для раннера
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
+    - chmod 600 ~/.ssh
     - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh ${DEV_USER}@${DEV_HOST}
-      "export "VERSION=${VERSION}";
-      export "SPRING_DATASOURCE_URL=${PSQL_DATASOURCE}";
-      export "SPRING_DATASOURCE_USERNAME=${PSQL_USER}";
-      export "SPRING_DATASOURCE_PASSWORD=${PSQL_PASSWORD}";
-      export "SPRING_DATA_MONGODB_URI=${MONGO_DATA}";
-      /bin/bash -s " < ./backend/backend-deploy.sh
-
-# deploy:
-#   when: manual
-#   stage: deploy
-#   before_script:
-#     #устанавливаем ssh-agent для удобства аутентификации по ssh
-#     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
-#     - eval $(ssh-agent -s)
-#     #сохраняем сгенеренный ранее приватный ключ для раннера
-#     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-#     - mkdir -p ~/.ssh
-#     - chmod 600 ~/.ssh
-#     - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-#     - chmod 644 ~/.ssh/known_hosts
-#   script:
-#     - scp ./backend/sausage-store-backend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-backend.service
-#     - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./backend/backend-deploy.sh
+    - scp ./backend/sausage-store-backend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-backend.service
+    - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./backend/backend-deploy.sh
 
   environment:
     name: production
 
-send-notification:
-  stage: notification
-  script:
-    - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
+# send-notification:
+#   stage: notification
+#   script:
+#     - > # Send Slack POST
+#       curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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

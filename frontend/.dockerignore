@@ -1,9 +1,0 @@
-#Ignore e2e directory
-e2e
-#Ignore all files in target directory
-e2e/*
-*sausage-store-frontend.service
-*DockerInDockerTemplate.yml
-*frontend-deploy.sh
-*Dockerfile
-*.gitlab-ci.yml
