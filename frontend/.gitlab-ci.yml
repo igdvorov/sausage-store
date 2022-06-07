@@ -24,7 +24,7 @@ make-artifacts:
     - npm run build
     - cd ..
     - mkdir sausage-store-${VERSION}
-    - cp frontend/dist/frontend sausage-store-${VERSION}/public_html # копирование собранного фронтэнда
+    - mv frontend/dist/frontend sausage-store-${VERSION}/public_html # копирование собранного фронтэнда
   artifacts:
     paths:
       - sausage-store-${VERSION}/public_html  # сохранение собранного фронтэнда как артефакт
