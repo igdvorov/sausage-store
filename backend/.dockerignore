@@ -1,0 +1,7 @@
+#Ignore target directory
+target
+#Ignore all files in target directory
+target/*
+*sausage-store-backend.service
+*backend-deploy.sh
+*Dockerfile
