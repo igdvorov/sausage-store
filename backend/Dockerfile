@@ -8,6 +8,13 @@ COPY . .
 # копируем CA-сертификат Яндекса в образ
 RUN curl https://storage.yandexcloud.net/cloud-certs/CA.pem -o YandexInternalRootCA.crt
 
+# release
+FROM openjdk:16-jdk-alpine
+ARG VERSION=${VERSION}
+WORKDIR /app
+COPY --from=builder /usr/src/app/YandexInternalRootCA.crt .
+# подкидываем CA-сертификат Яндекса в хранилище сертификатов для Java
+# создаём пользователя jaruser
 RUN keytool -importcert -file YandexInternalRootCA.crt \
 	-alias yandex -cacerts -storepass changeit -noprompt \
 	&& rm -rf YandexInternalRootCA.crt \
@@ -19,4 +26,4 @@ COPY --chown=jaruser:jaruser \
 EXPOSE 8080
 # приложение будет запускаться под пользователем jaruser
 USER jaruser
-ENTRYPOINT ["dumb-init", "java", "-Dmyserver.bindAddr=172.18.0.2", "-Dmyserver.bindPort=8080", "-jar", "./sausage-store.jar"]
+ENTRYPOINT ["dumb-init", "java", "-Dmyserver.bindPort=8080", "-jar", "./sausage-store.jar"]
