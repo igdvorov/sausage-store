@@ -88,11 +88,11 @@ upload-release: # задача с именем upload-release
   dependencies:
     - make-artifacts
 
-spotbugs-sast:
-  variables:
-    COMPILE: "false"
-    MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/backend/.m2/repository
-    SAST_JAVA_VERSION: "11"
+# spotbugs-sast:
+#   variables:
+#     COMPILE: "false"
+#     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/backend/.m2/repository
+#     SAST_JAVA_VERSION: "11"
     
 # sonarqube-backend-sast: #SonarQube backend SAST test
 #   stage: test
