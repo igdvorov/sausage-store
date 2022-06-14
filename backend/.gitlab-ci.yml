@@ -1,5 +1,5 @@
 include:
-  - template: Security/SAST.gitlab-ci.yml 
+  # - template: Security/SAST.gitlab-ci.yml
   - project: 'templates/ci'
     file: 'DockerInDockerTemplate.yml'
 
@@ -7,8 +7,8 @@ stages:
   - backend-artifact
   - build
   - release
-  - test
-  - notification
+  # - test
+  # - notification
   - deploy
 
 variables:
@@ -22,7 +22,7 @@ make-artifacts:
     - echo ${CI_PROJECT_DIR}
     - echo "ARTIFACT_JOB_ID=${CI_JOB_ID}" > CI_JOB_ID.txt  # сохранение номера задачи в файл, чтобы в дальнейшем использовать для копирования артефакта  
     - cd backend
-    - mvn package -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH}
+    - mvn package -Dversion.application=${VERSION} -Dmaven.repo.local=${MAVEN_REPO_PATH} -Dmaven.test.skip
     - mkdir sausage-store-${VERSION}  # создание директории, в которую копируются артефакты. Это нужно для организации удобной структуры архива
     - cp target/sausage-store-${VERSION}.jar sausage-store-${VERSION}/sausage-store-${VERSION}.jar # копирование собранного бэкенда
   artifacts:
@@ -94,19 +94,19 @@ spotbugs-sast:
     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/backend/.m2/repository
     SAST_JAVA_VERSION: "11"
     
-sonarqube-backend-sast: #SonarQube backend SAST test
-  stage: test
-  image: maven:3.8-openjdk-16
-  script:
-    - cd backend
-    - >
-      mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
-      -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_KEY}
-      -Dsonar.host.url=${SONARQUBE_URL}
-      -Dsonar.login=${SONAR_LOGIN}
-      -Dsonar.projectName=04_IVANDVOROV_BACKEND
-  dependencies:
-    - make-artifacts
+# sonarqube-backend-sast: #SonarQube backend SAST test
+#   stage: test
+#   image: maven:3.8-openjdk-16
+#   script:
+#     - cd backend
+#     - >
+#       mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
+#       -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_KEY}
+#       -Dsonar.host.url=${SONARQUBE_URL}
+#       -Dsonar.login=${SONAR_LOGIN}
+#       -Dsonar.projectName=04_IVANDVOROV_BACKEND
+#   dependencies:
+#     - make-artifacts
 
 deploy-backend:
   stage: deploy
@@ -151,11 +151,11 @@ deploy-backend:
 #     - scp ./backend/sausage-store-backend.service ${DEV_USER}@${DEV_HOST}:/home/${DEV_USER}/sausage-store-backend.service
 #     - ssh ${DEV_USER}@${DEV_HOST} 'export CURRENT_VERSION="'$VERSION'"; export VERSION="'$VERSION'"; export DEV_HOST='"'$DEV_HOST'"'; export DEV_USER="'$DEV_USER'"; export NEXUS_REPO_URL="'$NEXUS_REPO_URL'"; export NEXUS_REPO_PASS="'$NEXUS_REPO_PASS'"; export NEXUS_REPO_USER="'$NEXUS_REPO_USER'";setsid /bin/bash -s ' < ./backend/backend-deploy.sh
 
-  environment:
-    name: production
+  # environment:
+  #   name: production
 
-send-notification:
-  stage: notification
-  script:
-    - > # Send Slack POST
-      curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
+# send-notification:
+#   stage: notification
+#   script:
+#     - > # Send Slack POST
+#       curl -X POST -H "Content-type: application/json" --data '{"text":"Вышла новая версия сосисочной - `'"$VERSION"'`. Скачать бэкенд можно по - <https://nexus.praktikum-services.ru/repository/sausage-store-dvorov-ivan-backend/com/yandex/practicum/devops/sausage-store/'"$VERSION"'/sausage-store-'"$VERSION"'.jar|sausage-store-'"$VERSION"'.jar>. :catjam:"}' https://hooks.slack.com/services/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
