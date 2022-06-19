@@ -1,0 +1,48 @@
+version: "3.3"
+services:
+  sausage-backend-reports:
+    # build:
+    #   context: backend_report
+    #   dockerfile: Dockerfile
+    #   args: 
+    #     VERSION: "${VERSION}"
+    image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend-report:latest
+    container_name: sausage-backend-reports
+    environment:
+      SPRING_APPLICATION_NAME: "${APPLICATION_NAME}"
+      SPRING_CLOUD_VAULT_HOST: "${VAULT_HOST}"
+      SPRING_CLOUD_VAULT_PORT: "${VAULT_PORT}"
+      SPRING_CLOUD_VAULT_TOKEN: "${VAULT_TOKEN}"
+    networks:
+      - sausage_network
+
+  sausage-backend:
+    # build:
+    #   context: backend_docker
+    #   dockerfile: Dockerfile
+    #   args: 
+    #     VERSION: "${VERSION}"
+    image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend:latest
+    container_name: sausage-backend
+    environment:
+      SPRING_APPLICATION_NAME: "${APPLICATION_NAME}"
+      SPRING_CLOUD_VAULT_HOST: "${VAULT_HOST}"
+      SPRING_CLOUD_VAULT_PORT: "${VAULT_PORT}"
+      SPRING_CLOUD_VAULT_TOKEN: "${VAULT_TOKEN}"
+    networks:
+      - sausage_network
+
+  sausage-frontend:
+    # build:
+    #   context: frontend_docker
+    #   dockerfile: Dockerfile
+    #   args: 
+    #     VERSION: "${VERSION}"
+    image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-frontend:latest
+    container_name: sausage-frontend
+    networks:
+      - sausage_network
+    ports:
+      - 3543:3543
+networks:
+  sausage_network:
