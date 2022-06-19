@@ -94,19 +94,19 @@ spotbugs-sast:
     MAVEN_REPO_PATH: ${CI_PROJECT_DIR}/backend-report/.m2/repository
     SAST_JAVA_VERSION: "11"
 
-# sonarqube-backend-sast: #SonarQube backend SAST test
-#   stage: test
-#   image: maven:3.8-openjdk-16
-#   script:
-#     - cd backend-report
-#     - >
-#       mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
-#       -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_REPORT_KEY}
-#       -Dsonar.host.url=${SONARQUBE_URL}
-#       -Dsonar.login=${SONAR_LOGIN}
-#       -Dsonar.projectName=04_IVANDVOROV_BACKEND_REPORT
-#   dependencies:
-#     - make-backend-reports-artifacts
+sonarqube-backend-sast: #SonarQube backend SAST test
+  stage: test
+  image: maven:3.8-openjdk-16
+  script:
+    - cd backend-report
+    - >
+      mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
+      -Dsonar.projectKey=${SONAR_PROJECT_BACKEND_REPORT_KEY}
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONAR_LOGIN}
+      -Dsonar.projectName=04_IVANDVOROV_BACKEND_REPORT
+  dependencies:
+    - make-backend-reports-artifacts
 
 # deploy:
 #   when: manual
