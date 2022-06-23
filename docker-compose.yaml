@@ -7,8 +7,9 @@ services:
     #   args: 
     #     VERSION: "${VERSION}"
     image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend-report:latest
-    container_name: sausage-backend-reports
+    # container_name: sausage-backend-reports
     environment:
+      VIRTUAL_HOST: myproxy
       SPRING_APPLICATION_NAME: "${APPLICATION_NAME}"
       SPRING_CLOUD_VAULT_HOST: "${VAULT_HOST}"
       SPRING_CLOUD_VAULT_PORT: "${VAULT_PORT}"
@@ -23,8 +24,9 @@ services:
     #   args: 
     #     VERSION: "${VERSION}"
     image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend:latest
-    container_name: sausage-backend
+    # container_name: sausage-backend
     environment:
+      VIRTUAL_HOST: myproxy
       SPRING_APPLICATION_NAME: "${APPLICATION_NAME}"
       SPRING_CLOUD_VAULT_HOST: "${VAULT_HOST}"
       SPRING_CLOUD_VAULT_PORT: "${VAULT_PORT}"
@@ -39,10 +41,14 @@ services:
     #   args: 
     #     VERSION: "${VERSION}"
     image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-frontend:latest
-    container_name: sausage-frontend
+    environment:
+      DEFAULT_HOST: myproxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    # container_name: sausage-frontend
     networks:
       - sausage_network
     ports:
-      - 3543:3543
+      - "80:80"
 networks:
   sausage_network:
