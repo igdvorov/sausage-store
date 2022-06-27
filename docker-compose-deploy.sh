@@ -16,6 +16,6 @@ docker-compose up -d
 cat <<EOF | docker exec -i vault ash
 	sleep 10;
 	vault login ${VAULT_TOKEN}
-	vault secrets enable -path=my kv
-	vault kv put my/sausage datasource.password=${PSQL_PASSWORD} datasource.url=${PSQL_HOST} datasource.user=${PSQL_USER} mongodb.uri=${MONGO_DATA} 
+	vault secrets enable -path=sausage-store kv
+	vault kv put secret/sausage-store spring.datasource.password=${PSQL_PASSWORD} spring.datasource.url=${PSQL_HOST} spring.datasource.username=${PSQL_USER} spring.data.mongodb.uri=${MONGO_DATA} 
 EOF

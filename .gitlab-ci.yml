@@ -87,7 +87,7 @@ docker-compose-deploy:
       export "VAULT_HOST=${VAULT_HOST}";
       export "VAULT_PORT=${VAULT_PORT}";
       export "VAULT_TOKEN=${VAULT_TOKEN}";
-      /bin/bash -s " < ./docker-compose-deploy.sh
+      /bin/bash -s " < ./blue-green-deploy.sh
 
 
 # build-code-job:  # задача с именем build-code-job
