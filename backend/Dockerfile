@@ -16,6 +16,7 @@ WORKDIR /app
 COPY --from=builder /usr/src/app/YandexInternalRootCA.crt .
 # подкидываем CA-сертификат Яндекса в хранилище сертификатов для Java
 # создаём пользователя jaruser
+RUN apk --update --no-cache add curl
 RUN keytool -importcert -file YandexInternalRootCA.crt \
 	-alias yandex -cacerts -storepass changeit -noprompt \
 	&& rm -rf YandexInternalRootCA.crt \
