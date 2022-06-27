@@ -20,6 +20,6 @@ do
     echo "Waiting... health=healthy"
     sleep 5
 done
-    docker-compose stop backend-blue
+    docker-compose stop sausage-backend-blue
     echo "done, stop backend-blue"
 fi
