@@ -13,6 +13,7 @@ WORKDIR /usr/src/app
 COPY . .
 RUN npm install && npm run build
 
-FROM nginxproxy/nginx-proxy
+FROM nginx:latest
 COPY --from=builder /usr/src/app/dist/frontend/*.* /usr/share/nginx/html/
-COPY --from=builder /usr/src/app/nginx.tmpl /app/nginx.tmpl
+EXPOSE 80
+# COPY --from=builder /usr/src/app/nginx.tmpl /app/nginx.tmpl
