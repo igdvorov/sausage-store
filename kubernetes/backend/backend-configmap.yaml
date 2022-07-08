@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-env
+data:
+  spring.cloud.vault.host: '51.250.76.238'
+  spring.cloud.vault.port: '8200'

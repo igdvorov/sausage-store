@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-report
+  labels:
+    app: backend-report
+spec:
+  containers:
+    - name: backend-report
+      image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-backend-report:latest
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: spring.cloud.vault.host
+          value: '51.250.76.238'
+        - name: spring.cloud.vault.port
+          value: '8200'
+        - name: spring.cloud.vault.token
+          valueFrom:
+            secretKeyRef:
+              name: vault
+              key: vault_token
+      ports:
+        - containerPort: 8081
+      # livenessProbe:
+      #   # проверка живучести выполнит запрос HTTP GET       
+      #   httpGet:
+      #     # путь к запросу в HTTP-запросе          
+      #     path: /actuator/health
+      #     # порт, к которому должна подключиться проверка        
+      #     port: 8081
+      #   # перед исполнением первой проверки подождать 15 секунд, пока стартанёт бэкенд          
+      #   initialDelaySeconds: 15
+      #   # период выполнения проверки
+      #   periodSeconds: 30
+      #   # максимальное время выполнения проверки (по умолчанию 1 раз)
+      #   timeoutSeconds: 1
+      #   # сколько раз пробовать попытку, если она провалилась (по умолчанию 1 раз)
+      #   failureThreshold: 6
+  # чтобы кубер мог скачивать образы из нашего GitLab Registry  
+  imagePullSecrets:
+    - name: docker-config-secret

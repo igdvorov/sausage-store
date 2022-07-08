@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  containers:
+  - name: frontend
+    image: gitlab.praktikum-services.ru:5050/yuki.isoya23/sausage-store/sausage-frontend:latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 80
+
+    readinessProbe:
+      failureThreshold: 5
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 10
+      successThreshold: 2
+      timeoutSeconds: 3
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 3
+      initialDelaySeconds: 10
+
+    volumeMounts:
+      - name: nginx-conf
+        mountPath: /etc/nginx/conf.d/
+  volumes:
+    - name: nginx-conf
+      configMap:
+        name: nginx-conf
+        items:
+          - key: default.conf
+            path: default.conf   
+  
+  imagePullSecrets:
+    - name: docker-config-secret
